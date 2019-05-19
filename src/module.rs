@@ -1,7 +1,7 @@
 use alloc::{
     borrow::ToOwned,
-    rc::Rc,
     string::{String, ToString},
+    sync::Arc,
     vec::Vec,
 };
 use core::cell::RefCell;
@@ -38,7 +38,7 @@ use {Error, MemoryInstance, Module, RuntimeValue, Signature, TableInstance};
 ///
 /// [`ModuleInstance`]: struct.ModuleInstance.html
 #[derive(Clone, Debug)]
-pub struct ModuleRef(pub(crate) Rc<ModuleInstance>);
+pub struct ModuleRef(pub(crate) Arc<ModuleInstance>);
 
 impl ::core::ops::Deref for ModuleRef {
     type Target = ModuleInstance;
@@ -157,7 +157,7 @@ impl ExternVal {
 /// [`invoke_export`]: #method.invoke_export
 #[derive(Debug)]
 pub struct ModuleInstance {
-    signatures: RefCell<Vec<Rc<Signature>>>,
+    signatures: RefCell<Vec<Arc<Signature>>>,
     tables: RefCell<Vec<TableRef>>,
     funcs: RefCell<Vec<FuncRef>>,
     memories: RefCell<Vec<MemoryRef>>,
@@ -193,7 +193,7 @@ impl ModuleInstance {
         self.funcs.borrow().get(idx as usize).cloned()
     }
 
-    pub(crate) fn signature_by_index(&self, idx: u32) -> Option<Rc<Signature>> {
+    pub(crate) fn signature_by_index(&self, idx: u32) -> Option<Arc<Signature>> {
         self.signatures.borrow().get(idx as usize).cloned()
     }
 
@@ -201,7 +201,7 @@ impl ModuleInstance {
         self.funcs.borrow_mut().push(func);
     }
 
-    fn push_signature(&self, signature: Rc<Signature>) {
+    fn push_signature(&self, signature: Arc<Signature>) {
         self.signatures.borrow_mut().push(signature)
     }
 
@@ -232,10 +232,10 @@ impl ModuleInstance {
         extern_vals: I,
     ) -> Result<ModuleRef, Error> {
         let module = loaded_module.module();
-        let instance = ModuleRef(Rc::new(ModuleInstance::default()));
+        let instance = ModuleRef(Arc::new(ModuleInstance::default()));
 
         for &Type::Function(ref ty) in module.type_section().map(|ts| ts.types()).unwrap_or(&[]) {
-            let signature = Rc::new(Signature::from_elements(ty));
+            let signature = Arc::new(Signature::from_elements(ty));
             instance.push_signature(signature);
         }
 
@@ -330,7 +330,7 @@ impl ModuleInstance {
                     code: code,
                 };
                 let func_instance =
-                    FuncInstance::alloc_internal(Rc::downgrade(&instance.0), signature, func_body);
+                    FuncInstance::alloc_internal(Arc::downgrade(&instance.0), signature, func_body);
                 instance.push_func(func_instance);
             }
         }
@@ -812,6 +812,13 @@ pub fn check_limits(limits: &ResizableLimits) -> Result<(), Error> {
 
     Ok(())
 }
+
+unsafe impl Sync for ModuleRef {}
+unsafe impl Send for ModuleRef {}
+unsafe impl Sync for ExternVal {}
+unsafe impl Send for ExternVal {}
+unsafe impl Sync for ModuleInstance {}
+unsafe impl Send for ModuleInstance {}
 
 #[cfg(test)]
 mod tests {

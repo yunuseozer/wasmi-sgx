@@ -1,0 +1,82 @@
+diff --git a/src/isa.rs b/src/isa.rs
+index fcb3905..fd1b8f1 100644
+--- a/src/isa.rs
++++ b/src/isa.rs
+@@ -122,7 +122,8 @@ pub struct BrTargets<'a> {
+ }
+ 
+ impl<'a> BrTargets<'a> {
+-    pub(crate) fn from_internal(targets: &'a [InstructionInternal]) -> Self {
++    //pub(crate) fn from_internal(targets: &'a [InstructionInternal]) -> Self {
++    pub fn from_internal(targets: &'a [InstructionInternal]) -> Self {
+         BrTargets { stream: targets }
+     }
+ 
+@@ -350,7 +351,8 @@ pub enum Instruction<'a> {
+ /// When returning instructions we convert to `Instruction`, whose `BrTable` variant internally
+ /// borrows the list of instructions and returns targets by reading it.
+ #[derive(Copy, Debug, Clone, PartialEq, Eq)]
+-pub(crate) enum InstructionInternal {
++//pub(crate) enum InstructionInternal {
++pub enum InstructionInternal {
+     GetLocal(u32),
+     SetLocal(u32),
+     TeeLocal(u32),
+diff --git a/src/lib.rs b/src/lib.rs
+index 69c82bf..058b033 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -403,13 +403,13 @@ impl From<validation::Error> for Error {
+ 
+ mod func;
+ mod global;
+-mod host;
++pub mod host;
+ mod imports;
+-mod isa;
+-mod memory;
+-mod module;
++pub mod isa;
++pub mod memory;
++pub mod module;
+ pub mod nan_preserving_float;
+-mod prepare;
++pub mod prepare;
+ mod runner;
+ mod table;
+ mod types;
+diff --git a/src/memory/mod.rs b/src/memory/mod.rs
+index 569b8f1..65c3923 100644
+--- a/src/memory/mod.rs
++++ b/src/memory/mod.rs
+@@ -36,7 +36,7 @@ pub const LINEAR_MEMORY_PAGE_SIZE: Bytes = Bytes(65536);
+ /// [`MemoryInstance`]: struct.MemoryInstance.html
+ ///
+ #[derive(Clone, Debug)]
+-pub struct MemoryRef(Arc<MemoryInstance>);
++pub struct MemoryRef(pub Arc<MemoryInstance>);
+
+ impl ::core::ops::Deref for MemoryRef {
+     type Target = MemoryInstance;
+@@ -140,7 +140,7 @@ impl MemoryInstance {
+     }
+
+     /// Create new linear memory instance.
+-    fn new(initial: Pages, maximum: Option<Pages>) -> Result<Self, Error> {
++    pub fn new(initial: Pages, maximum: Option<Pages>) -> Result<Self, Error> {
+         let limits = ResizableLimits::new(initial.0 as u32, maximum.map(|p| p.0 as u32));
+
+         let initial_size: Bytes = initial.into();
+diff --git a/src/nan_preserving_float.rs b/src/nan_preserving_float.rs
+index e63d476..d35d353 100644
+--- a/src/nan_preserving_float.rs
++++ b/src/nan_preserving_float.rs
+@@ -32,7 +32,7 @@ macro_rules! float {
+     };
+     ($for:ident, $rep:ident, $is:ident, $sign_bit:expr) => {
+         #[derive(Copy, Clone)]
+-        pub struct $for($rep);
++        pub struct $for(pub $rep);
+ 
+         impl_binop!($for, $is, Add, add);
+         impl_binop!($for, $is, Sub, sub);

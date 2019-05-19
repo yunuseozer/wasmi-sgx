@@ -1,6 +1,6 @@
 use alloc::{
     borrow::Cow,
-    rc::{Rc, Weak},
+    sync::{Arc, Weak},
     vec::Vec,
 };
 use core::fmt;
@@ -19,7 +19,7 @@ use {Signature, Trap};
 ///
 /// [`FuncInstance`]: struct.FuncInstance.html
 #[derive(Clone, Debug)]
-pub struct FuncRef(Rc<FuncInstance>);
+pub struct FuncRef(Arc<FuncInstance>);
 
 impl ::core::ops::Deref for FuncRef {
     type Target = FuncInstance;
@@ -47,9 +47,9 @@ pub struct FuncInstance(FuncInstanceInternal);
 #[derive(Clone)]
 pub(crate) enum FuncInstanceInternal {
     Internal {
-        signature: Rc<Signature>,
+        signature: Arc<Signature>,
         module: Weak<ModuleInstance>,
-        body: Rc<FuncBody>,
+        body: Arc<FuncBody>,
     },
     Host {
         signature: Signature,
@@ -86,7 +86,7 @@ impl FuncInstance {
             signature,
             host_func_index,
         };
-        FuncRef(Rc::new(FuncInstance(func)))
+        FuncRef(Arc::new(FuncInstance(func)))
     }
 
     /// Returns [signature] of this function instance.
@@ -107,20 +107,20 @@ impl FuncInstance {
 
     pub(crate) fn alloc_internal(
         module: Weak<ModuleInstance>,
-        signature: Rc<Signature>,
+        signature: Arc<Signature>,
         body: FuncBody,
     ) -> FuncRef {
         let func = FuncInstanceInternal::Internal {
             signature,
             module: module,
-            body: Rc::new(body),
+            body: Arc::new(body),
         };
-        FuncRef(Rc::new(FuncInstance(func)))
+        FuncRef(Arc::new(FuncInstance(func)))
     }
 
-    pub(crate) fn body(&self) -> Option<Rc<FuncBody>> {
+    pub(crate) fn body(&self) -> Option<Arc<FuncBody>> {
         match *self.as_internal() {
-            FuncInstanceInternal::Internal { ref body, .. } => Some(Rc::clone(body)),
+            FuncInstanceInternal::Internal { ref body, .. } => Some(Arc::clone(body)),
             FuncInstanceInternal::Host { .. } => None,
         }
     }

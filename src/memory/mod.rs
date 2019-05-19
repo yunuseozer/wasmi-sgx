@@ -1,4 +1,4 @@
-use alloc::{rc::Rc, string::ToString, vec::Vec};
+use alloc::{string::ToString, sync::Arc, vec::Vec};
 use core::{
     cell::{Cell, RefCell},
     cmp, fmt,
@@ -34,7 +34,7 @@ pub const LINEAR_MEMORY_PAGE_SIZE: Bytes = Bytes(65536);
 /// [`MemoryInstance`]: struct.MemoryInstance.html
 ///
 #[derive(Clone, Debug)]
-pub struct MemoryRef(Rc<MemoryInstance>);
+pub struct MemoryRef(Arc<MemoryInstance>);
 
 impl ::core::ops::Deref for MemoryRef {
     type Target = MemoryInstance;
@@ -134,7 +134,7 @@ impl MemoryInstance {
         }
 
         let memory = MemoryInstance::new(initial, maximum)?;
-        Ok(MemoryRef(Rc::new(memory)))
+        Ok(MemoryRef(Arc::new(memory)))
     }
 
     /// Create new linear memory instance.
@@ -447,7 +447,7 @@ impl MemoryInstance {
         dst_offset: usize,
         len: usize,
     ) -> Result<(), Error> {
-        if Rc::ptr_eq(&src.0, &dst.0) {
+        if Arc::ptr_eq(&src.0, &dst.0) {
             // `transfer` is invoked with with same source and destination. Let's assume that regions may
             // overlap and use `copy`.
             return src.copy(src_offset, dst_offset, len);
@@ -536,12 +536,17 @@ impl MemoryInstance {
     }
 }
 
+unsafe impl Sync for MemoryRef {}
+unsafe impl Send for MemoryRef {}
+unsafe impl Sync for MemoryInstance {}
+unsafe impl Send for MemoryInstance {}
+
 #[cfg(test)]
 mod tests {
 
     use super::{MemoryInstance, MemoryRef, LINEAR_MEMORY_PAGE_SIZE};
     use memory_units::Pages;
-    use std::rc::Rc;
+    use std::rc::Arc;
     use Error;
 
     #[test]
@@ -635,8 +640,8 @@ mod tests {
 
     #[test]
     fn transfer_works() {
-        let src = MemoryRef(Rc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
-        let dst = MemoryRef(Rc::new(create_memory(&[
+        let src = MemoryRef(Arc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
+        let dst = MemoryRef(Arc::new(create_memory(&[
             10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
         ])));
 
@@ -651,7 +656,7 @@ mod tests {
 
     #[test]
     fn transfer_still_works_with_same_memory() {
-        let src = MemoryRef(Rc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
+        let src = MemoryRef(Arc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
 
         MemoryInstance::transfer(&src, 4, &src, 0, 3).unwrap();
 
@@ -660,7 +665,7 @@ mod tests {
 
     #[test]
     fn transfer_oob_with_same_memory_errors() {
-        let src = MemoryRef(Rc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
+        let src = MemoryRef(Arc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
         assert!(MemoryInstance::transfer(&src, 65535, &src, 0, 3).is_err());
 
         // Check that memories content left untouched
@@ -669,8 +674,8 @@ mod tests {
 
     #[test]
     fn transfer_oob_errors() {
-        let src = MemoryRef(Rc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
-        let dst = MemoryRef(Rc::new(create_memory(&[
+        let src = MemoryRef(Arc::new(create_memory(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])));
+        let dst = MemoryRef(Arc::new(create_memory(&[
             10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
         ])));
 
