@@ -17,7 +17,7 @@ parity-wasm = { git = "https://github.com/mesalock-linux/parity-wasm-sgx.git" }
 assert_matches = { git = "https://github.com/mesalock-linux/assert_matches-sgx.git" }
 wabt = { git = "https://github.com/mesalock-linux/wabt-rs-sgx", branch = "v0.9-core" }
 memory_units = "0.3.0"
-rand = { git = "https://github.com/mesalock-linux/rand-sgx", tag = "v0.6.5_sgx1.1.1" }
+rand = { git = "https://github.com/mesalock-linux/rand-sgx", tag = "v0.7.3_sgx1.1.2" }
 typetag = { git = "https://github.com/mesalock-linux/typetag-sgx" }
 serde = { git = "https://github.com/mesalock-linux/serde-sgx", features = ["derive"] }
 
