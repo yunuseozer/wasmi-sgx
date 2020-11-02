@@ -12,8 +12,8 @@ default = []
 
 [dependencies]
 wasmi-validation = { path = "../../../validation" }
-parity-wasm = { git = "https://github.com/mesalock-linux/parity-wasm-sgx.git" }
-assert_matches = { git = "https://github.com/mesalock-linux/assert_matches-sgx.git" }
+parity-wasm = { git = "https://github.com/mesalock-linux/parity-wasm-sgx" }
+assert_matches = { git = "https://github.com/mesalock-linux/assert_matches-sgx" }
 wabt = { git = "https://github.com/mesalock-linux/wabt-rs-sgx", branch = "v0.9-core" }
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
