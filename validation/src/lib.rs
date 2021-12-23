@@ -4,9 +4,9 @@
 #![cfg_attr(any(not(feature = "std"),
                 all(feature = "mesalock_sgx", not(target_env = "sgx"))), no_std)]
 //// alloc is required in no_std
-#![cfg_attr(any(not(feature = "std"),
-                all(feature = "mesalock_sgx", target_env = "sgx")),
-            feature(alloc_prelude))]
+//#![cfg_attr(any(not(feature = "std"),
+//                all(feature = "mesalock_sgx", target_env = "sgx")),
+//            feature(alloc_prelude))]
 
 #![cfg_attr(all(target_env = "sgx", target_vendor = "mesalock"), feature(rustc_private))]
 
