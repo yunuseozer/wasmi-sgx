@@ -17,7 +17,7 @@ memory_units = "0.3.0"
 libm = { version = "0.1.2", optional = true }
 num-rational = { git = "https://github.com/yunuseozer/num-rational-sgx" }
 num-traits = { git = "https://github.com/yunuseozer/num-traits-sgx" }
-serde = { git = "https://github.com/yunuseozer/serde-sgx", features = ["derive"] }
+serde = { rev = "sgx_1.1.4", git = "https://github.com/yunuseozer/serde-sgx", features = ["derive"] }
 typetag = { git = "https://github.com/yunuseozer/typetag-sgx" }
 sgx_tstd = { rev = "v1.1.4-upgrade", git = "https://github.com/yunuseozer/incubator-teaclave-sgx-sdk.git", optional = true }
 #libc = "0.2.58"
